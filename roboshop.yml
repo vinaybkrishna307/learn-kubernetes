@@ -1,0 +1,468 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend
+data:
+  CATALOGUE_HOST: catalogue
+  CATALOGUE_PORT: "8080"
+  USER_HOST: user
+  USER_PORT: "8080"
+  CART_HOST: cart
+  CART_PORT: "8080"
+  SHIPPING_HOST: shipping
+  SHIPPING_PORT: "8080"
+  PAYMENT_HOST: payment
+  PAYMENT_PORT: "8080"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: catalogue
+data:
+  MONGO: "true"
+  MONGO_URL: "mongodb://mongo-dev.mikeydevops1.online:27017/catalogue"
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: catalogue-db-schema
+data:
+  DB_TYPE: "mongo"
+  APP_GIT_URL: "https://github.com/roboshop-devops-project-v3/catalogue"
+  DB_HOST: "mongo-dev.mikeydevops1.online"
+  SCHEMA_FILE: "db/master-data.js"
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: user
+data:
+  MONGO: "true"
+  MONGO_URL: "mongodb://mongo-dev.mikeydevops1.online:27017/catalogue"
+  REDIS_URL: "redis://redis-dev.mikeydevops1.online:6379"
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cart
+data:
+  CATALOGUE_HOST: catalogue
+  CATALOGUE_PORT: "8080"
+  REDIS_HOST: "redis://redis-dev.mikeydevops1.online:6379"
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shipping
+data:
+  CART_ENDPOINT: "cart:8080"
+  DB_HOST: "mysql-dev.mikeydevops1.online"
+
+---
+
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shipping-Mysql-1
+data:
+  DB_TYPE: "mysql"
+  APP_GIT_URL: "https://github.com/roboshop-devops-project-v3/shipping"
+  DB_HOST: "mysql-dev.mikeydevops1.online"
+  DB_USER: "root"
+  DB_PASS: "RoboShop@1"
+  SCHEMA_FILE: "db/app-user.sql"
+
+---
+
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shipping-Mysql-2
+data:
+  DB_TYPE: "mysql"
+  APP_GIT_URL: "https://github.com/roboshop-devops-project-v3/shipping"
+  DB_HOST: "mysql-dev.mikeydevops1.online"
+  DB_USER: "root"
+  DB_PASS: "RoboShop@1"
+  SCHEMA_FILE: "db/schema.sql"
+
+
+---
+
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: shipping-Mysql-3
+data:
+  DB_TYPE: "mysql"
+  APP_GIT_URL: "https://github.com/roboshop-devops-project-v3/shipping"
+  DB_HOST: "mysql-dev.mikeydevops1.online"
+  DB_USER: "root"
+  DB_PASS: "RoboShop@1"
+  SCHEMA_FILE: "db/master-data.sql"
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: payment
+data:
+  CART_HOST: "cart"
+  CART_PORT: "8080"
+  USER_HOST: "user"
+  USER_PORT: "root"
+  AMQP_HOST: "rabbitmq-dev.mikeydevops1.online"
+  AMQP_USER: "roboshop"
+  AMQP_PASS: "roboshop123"
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    component: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: frontend
+  template:
+    metadata:
+      labels:
+        component: frontend
+    spec:
+      containers:
+        - name: frontend
+          image:  public.ecr.aws/w8x4g9h7/roboshop-v3/frontend
+          envFrom:
+            - configMapRef:
+                name: frontend
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalogue
+  labels:
+    component: catalogue
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+          component: catalogue
+    template:
+        metadata:
+        labels:
+            component: catalogue
+        spec:
+        containers:
+            - name: catalogue
+              image: public.ecr.aws/w8x4g9h7/roboshop-v3/catalogue
+              envFrom:
+                - configMapRef:
+                    name: catalogue
+
+
+---
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user
+  labels:
+    component: user
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: user
+  template:
+    metadata:
+    labels:
+      component: user
+    spec:
+    containers:
+      - name: user
+        image: public.ecr.aws/w8x4g9h7/roboshop-v3/user
+        envFrom:
+          - configMapRef:
+              name: user
+
+
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart
+  labels:
+    component: cart
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: cart
+  template:
+    metadata:
+    labels:
+      component: cart
+    spec:
+    containers:
+      - name: cart
+        image: public.ecr.aws/w8x4g9h7/roboshop-v3/cart
+        envFrom:
+          - configMapRef:
+              name: cart
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shipping
+  labels:
+    component: shipping
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: shipping
+  template:
+    metadata:
+    labels:
+      component: shipping
+    spec:
+    containers:
+      - name: shipping
+        image: public.ecr.aws/w8x4g9h7/roboshop-v3/shipping
+        envFrom:
+          - configMapRef:
+              name: shipping
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment
+  labels:
+    component: payment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: payment
+  template:
+    metadata:
+    labels:
+      component: payment
+    spec:
+    containers:
+      - name: payment
+        image: public.ecr.aws/w8x4g9h7/roboshop-v3/payment
+        envFrom:
+          - configMapRef:
+              name: payment
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  type: LoadBalancer
+  selector:
+    component: frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalogue
+spec:
+  type: clusterIP
+  selector:
+    component: catalogue
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: user
+spec:
+  type: clusterIP
+  selector:
+    component: user
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+
+
+---
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart
+spec:
+  type: clusterIP
+  selector:
+    component: cart
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shipping
+spec:
+  type: clusterIP
+  selector:
+    component: shipping
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: payment
+spec:
+  type: clusterIP
+  selector:
+    component: payment
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
+
+
+---
+
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: catalogue-schema-load
+  labels:
+    component: catalogue-schema-load
+spec:
+  template:
+    spec:
+      containers:
+        - name: catalogue-schema-load
+          image: public.ecr.aws/w8x4g9h7/roboshop-v3/schema-load
+          envFrom:
+            - configMapRef:
+                name: catalogue-db-schema
+      restartPolicy: always
+  backoffLimit: 4
+  recreate: true
+
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: shipping-schema-load-1
+  labels:
+    component: shipping-schema-load-1
+spec:
+  template:
+    spec:
+      containers:
+        - name: shipping-schema-load-1
+          image: public.ecr.aws/w8x4g9h7/roboshop-v3/schema-load
+          envFrom:
+            - configMapRef:
+                name: shipping-Mysql-1
+      restartPolicy: always
+  backoffLimit: 4
+  recreate: true
+
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: shipping-schema-load-2
+  labels:
+    component: shipping-schema-load-2
+spec:
+  template:
+    spec:
+      containers:
+        - name: shipping-schema-load-2
+          image: public.ecr.aws/w8x4g9h7/roboshop-v3/schema-load
+          envFrom:
+            - configMapRef:
+                name: shipping-Mysql-2
+      restartPolicy: always
+  backoffLimit: 4
+  recreate: true
+
+---
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: shipping-schema-load-3
+  labels:
+    component: shipping-schema-load-3
+spec:
+  template:
+    spec:
+      containers:
+        - name: shipping-schema-load-3
+          image: public.ecr.aws/w8x4g9h7/roboshop-v3/schema-load
+          envFrom:
+            - configMapRef:
+                name: shipping-Mysql-3
+      restartPolicy: always
+  backoffLimit: 4
+  recreate: true
+
+---
+
+

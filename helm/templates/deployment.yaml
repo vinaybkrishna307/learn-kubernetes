@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: helm-demo
+data:
+  name: hello world
+  release-name: {{ .Release.Name }}
+  chart-name: {{ .Chart.Name }}
+  env: {{ .Values.env }}
+  pods: |
+    {{- $allPods := lookup "v1" "Pod" "" "" }}
+    {{- range $pod := $allPods.items }}
+    - name: {{ $pod.metadata.name }}
+      namespace: {{ $pod.metadata.namespace }}
+    {{- end }}
